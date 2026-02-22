@@ -9,7 +9,7 @@ const json2csvParser = new Parser();
 //  */
 // getRecords: Obtains all records
 exports.getRecord = async(req, res) => {//
-    const response = await db.query('SELECT * FROM "tblRecord" ORDER BY id ASC');//
+    const response = await db.query('SELECT * FROM "tblrecord" ORDER BY id ASC');//
     const json = JSON.stringify(response);
     res.status(200).send(json);//
 };//
@@ -24,10 +24,10 @@ exports.getRecord = async(req, res) => {//
 exports.addRecord = async(req, res) => {
     let {contributor, content, lat, lng} = req.body;
     // let currTime = new Date().toISOString();
-    console.log('INSERT INTO "tblRecord"(contributor, content, lat, lng) VALUES ($1, $2, $3, $4)',
+    console.log('INSERT INTO "tblrecord"(contributor, content, lat, lng) VALUES ($1, $2, $3, $4)',
         [contributor, content, lat, lng]);
     let {recordRows} = await db.query(
-        'INSERT INTO "tblRecord"(contributor, content, lat, lng) VALUES ($1, $2, $3, $4)',
+        'INSERT INTO "tblrecord"(contributor, content, lat, lng) VALUES ($1, $2, $3, $4)',
         [contributor, content, lat, lng]
     )
 
