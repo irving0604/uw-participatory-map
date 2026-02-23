@@ -1,245 +1,235 @@
 <!DOCTYPE html>
 <html>
-
 <head>
-    <title>A Minimum Viable Participatory Mapping Project</title>
-    <script src="https://unpkg.com/maplibre-gl@3.1.0/dist/maplibre-gl.js"></script>
-    <link href="https://unpkg.com/maplibre-gl@3.1.0/dist/maplibre-gl.css" rel="stylesheet" />
-    <!-- Styles for the map and popup -->
-    <style>
-        /* Basic CSS for the page */
-        body {
-            margin: 0;
-            padding: 0;
-        }
+  <title>UW Coffee Shops Map</title>
+  <script src="https://unpkg.com/maplibre-gl@3.1.0/dist/maplibre-gl.js"></script>
+  <link href="https://unpkg.com/maplibre-gl@3.1.0/dist/maplibre-gl.css" rel="stylesheet" />
 
-        #map {
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            width: 100%;
-        }
-        
-        #info {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 350px;
-            margin: 10px;
-            padding: 10px;
-            background-color: #ffffff;
-            border-radius: 5px;
-            font-family: Arial, Helvetica, sans-serif;
-            font-size: 12px;
-            line-height: 1.5;
-            color: #000000;
-            z-index: 1;
-        }
-        
-        #popup {
-            padding: 10px;
-        }
+  <style>
+    body { margin: 0; padding: 0; }
+    #map { position: absolute; top: 0; bottom: 0; width: 100%; }
 
-        #name {
-            width: 100%;
-            height: 20px;
-            margin-bottom: 10px;
-        }
+    #info {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 350px;
+      margin: 10px;
+      padding: 10px;
+      background-color: #ffffff;
+      border-radius: 5px;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 12px;
+      line-height: 1.5;
+      color: #000000;
+      z-index: 1;
+    }
 
-        #content {
-            width: 100%;
-            height: 45px;
-            margin-bottom: 10px;
-        }
+    #popup { padding: 10px; }
 
-        #submit {
-            float: right;
-        }
-    </style>
+    #name, #shop_name, #favorite_order, #content {
+      width: 100%;
+      margin-bottom: 10px;
+      box-sizing: border-box;
+      padding: 6px;
+      font-size: 12px;
+    }
+
+    #content { height: 55px; }
+    #submit { float: right; }
+  </style>
 </head>
 
 <body>
-    <!-- Map container -->
-    <div id="map"></div>
-    
-    <!-- Information box -->
-    <div id="info">
-        <h3>UW Coffee Shops Map</h3>
-        <h4>Participatory Mapping Project | University of Washington</h4>
-        <!-- Introduction to the participatory mapping solution -->
-        <p>
-            This participatory map allows UW students to share coffee shops near campus 
-            that are worth visiting — whether for studying, quick caffeine, or a good vibe.
-        </p>
+  <div id="map"></div>
 
-        <p>
-        Click on the map to add a coffee shop, share your favorite drink,
-        and describe what makes the spot good (price, seating, outlets, noise level,
-        or best time to go).
-        </p>
+  <div id="info">
+    <h3>UW Coffee Shops Map</h3>
+    <h4>Participatory Mapping Project | University of Washington</h4>
 
-        <p>
-        All locations are contributed by students to help support local coffee shops
-        around the University of Washington.
-        </p>
+    <p>
+      This participatory map allows UW students to share coffee shops near campus
+      that are worth visiting — whether for studying, quick caffeine, or a good vibe.
+    </p>
 
-        <i>Created for GEOG Lab 5: Participatory Mapping</i>
-    </div>
-    
-    <!-- JavaScript code for the interactive map and data submission -->
-    <script>
-        // Variable to hold the popup instance
-        let popup = null;
-        
-        // GeoJSON data object to store the contributed points
-        let geojson = {
-            'type': 'FeatureCollection',
-            'features': []
-        };
-        
-        // Create a new map instance
-        let map = new maplibregl.Map({
-            container: 'map', // container id
-            style: 'https://api.maptiler.com/maps/streets-v2/style.json?key=Cusoe5zmfmn26glFoeoe', // style URL
-            center: [-122.3321, 47.6062], // starting position [lng, lat]
-            // pitch: 45, // pitch in degrees
-            zoom: 12 // starting zoom
-        });
+    <p>
+      Click on the map to add a coffee shop, share your favorite drink,
+      and describe what makes the spot good (price, seating, outlets, noise level,
+      or best time to go).
+    </p>
 
-        // Fetch existing records when the window is loaded
-        window.addEventListener("load", async function () {
-            let response = await fetch('https://my-app-irving-696f4f728ef2.herokuapp.com/api/get-record', {
-                method: 'GET'
-            });
+    <p>
+      All locations are contributed by students to help support local coffee shops
+      around the University of Washington.
+    </p>
 
-            let data = await response.json();
-      
-            // Iterate through the fetched records and add them to the GeoJSON data object
-            for (let i = 0; i < data.rows.length; i++) {
-                geojson.features.push({
-                    'type': 'Feature',
-                    'properties': {
-                        'contributor': data.rows[i].contributor,
-                        'content': data.rows[i].content,
-                    },
-                    'geometry': {
-                        'type': 'Point',
-                        'coordinates': [data.rows[i].lng, data.rows[i].lat]
-                    }
-                });
+    <i>Created for GEOG Lab 5: Participatory Mapping</i>
+  </div>
+
+  <script>
+    let popup = null;
+
+    let geojson = {
+      type: "FeatureCollection",
+      features: []
+    };
+
+    let map = new maplibregl.Map({
+      container: "map",
+      style: "https://api.maptiler.com/maps/streets-v2/style.json?key=Cusoe5zmfmn26glFoeoe",
+      center: [-122.3321, 47.6062],
+      zoom: 12
+    });
+
+    function toRows(data) {
+      if (typeof data === "string") {
+        try { data = JSON.parse(data); } catch (e) {}
+      }
+      if (data && Array.isArray(data.rows)) return data.rows;
+      if (Array.isArray(data)) return data;
+      return [];
+    }
+
+    window.addEventListener("load", async function () {
+      try {
+        let response = await fetch("https://my-app-irving-696f4f728ef2.herokuapp.com/api/get-record", { method: "GET" });
+        let data = await response.json();
+        let rows = toRows(data);
+
+        geojson.features = [];
+        for (let i = 0; i < rows.length; i++) {
+          geojson.features.push({
+            type: "Feature",
+            properties: {
+              contributor: rows[i].contributor,
+              shop_name: rows[i].shop_name,
+              favorite_order: rows[i].favorite_order,
+              content: rows[i].content
+            },
+            geometry: {
+              type: "Point",
+              coordinates: [rows[i].lng, rows[i].lat]
             }
-        });
-
-        // After the map loads, add the GeoJSON source and layer for existing points
-        map.on("load", function () {
-            map.addSource('places', {
-                'type': 'geojson',
-                'data': geojson
-            });
-
-            map.addLayer({
-                'id': 'placesLayer',
-                'type': 'circle',
-                'source': 'places',
-                'paint': {
-                    'circle-radius': 6,
-                    'circle-color': '#B42222'
-                }
-            });
-        });
-
-        // Show popup on mouse enter over an existing point
-        map.on('mouseenter', 'placesLayer', function (e) {
-            map.getCanvas().style.cursor = 'pointer';
-
-            var coordinates = e.features[0].geometry.coordinates;
-            var content = e.features[0].properties.content;
-            var contributor = e.features[0].properties.contributor;
-
-            popup = new maplibregl.Popup()
-                .setLngLat(coordinates)
-                .setHTML("<p><b>" + contributor + "</b> <i>said:</i> " + content + "</p>")
-                .addTo(map);
-        });
-
-        // Remove popup on mouse leave from an existing point
-        map.on('mouseleave', 'placesLayer', function () {
-            map.getCanvas().style.cursor = '';
-            popup.remove();
-        });
-
-        // Handle click event on the map to allow user contribution
-        map.on('click', function (e) {
-            if (popup) {
-                popup.remove();
-            }
-
-            // Create the HTML content for the contribution popup
-            const popupContent =
-              '<div id="popup">' +
-              '<input type="text" id="name" placeholder="Your name...">' +
-              '<input type="text" id="shop_name" placeholder="Coffee shop name...">' +
-              '<input type="text" id="favorite_order" placeholder="Favorite order (ex: iced latte)...">' +
-              '<input type="text" id="content" placeholder="Why do you like it? (vibe, outlets, seating)">' +
-              '<button id="submit">submit</button>' +
-              '</div>';
-
-            // Create a new popup and set its content
-            popup = new maplibregl.Popup({ closeOnClick: false })
-                .setLngLat(e.lngLat)
-                .setHTML(popupContent)
-                .addTo(map);
-
-            // Attach an event listener to the submit button to handle new record submission
-            document.getElementById('submit').addEventListener('click', submitNewRecord);
-            e.preventDefault();
-        });
-
-        // Function to handle the submission of a new record
-        async function submitNewRecord() {
-          let contributor = document.getElementById('name').value;
-          let shop_name = document.getElementById('shop_name').value;
-          let favorite_order = document.getElementById('favorite_order').value;
-          let content = document.getElementById('content').value;
-          let lngLat = popup.getLngLat();
-        
-          let newRecord = new URLSearchParams();
-          newRecord.append('contributor', contributor);
-          newRecord.append('shop_name', shop_name);
-          newRecord.append('favorite_order', favorite_order);
-          newRecord.append('content', content);
-          newRecord.append('lng', lngLat.lng);
-          newRecord.append('lat', lngLat.lat);
-        
-          let settings = {
-            method: 'POST',
-            body: newRecord
-          };
-        
-          try {
-            await fetch('https://my-app-irving-696f4f728ef2.herokuapp.com/api/add-record', settings);
-          } catch (err) {
-            console.error(err);
-          } finally {
-            popup.remove();
-            geojson.features.push({
-              'type': 'Feature',
-              'properties': {
-                'contributor': contributor,
-                'shop_name': shop_name,
-                'favorite_order': favorite_order,
-                'content': content
-              },
-              'geometry': {
-                'type': 'Point',
-                'coordinates': [lngLat.lng, lngLat.lat]
-              }
-            });
-            map.getSource('places').setData(geojson);
-          }
+          });
         }
-    </script>
 
+        if (map.getSource("places")) {
+          map.getSource("places").setData(geojson);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    });
+
+    map.on("load", function () {
+      map.addSource("places", {
+        type: "geojson",
+        data: geojson
+      });
+
+      map.addLayer({
+        id: "placesLayer",
+        type: "circle",
+        source: "places",
+        paint: {
+          "circle-radius": 8,
+          "circle-color": "#7c2d12",
+          "circle-stroke-width": 2,
+          "circle-stroke-color": "#f5f5f4",
+          "circle-opacity": 0.9
+        }
+      });
+    });
+
+    map.on("mouseenter", "placesLayer", function (e) {
+      map.getCanvas().style.cursor = "pointer";
+
+      const coordinates = e.features[0].geometry.coordinates;
+      const props = e.features[0].properties;
+
+      const contributor = props.contributor || "";
+      const shopName = props.shop_name || "Coffee shop";
+      const favoriteOrder = props.favorite_order || "";
+      const content = props.content || "";
+
+      const html =
+        "<p><b>" + shopName + "</b></p>" +
+        (favoriteOrder ? "<p><i>Recommended:</i> " + favoriteOrder + "</p>" : "") +
+        "<p><b>" + contributor + "</b>: " + content + "</p>";
+
+      popup = new maplibregl.Popup()
+        .setLngLat(coordinates)
+        .setHTML(html)
+        .addTo(map);
+    });
+
+    map.on("mouseleave", "placesLayer", function () {
+      map.getCanvas().style.cursor = "";
+      if (popup) popup.remove();
+    });
+
+    map.on("click", function (e) {
+      if (popup) popup.remove();
+
+      const popupContent =
+        '<div id="popup">' +
+          '<input type="text" id="name" placeholder="Your name...">' +
+          '<input type="text" id="shop_name" placeholder="Coffee shop name...">' +
+          '<input type="text" id="favorite_order" placeholder="Favorite order (ex: iced latte)...">' +
+          '<input type="text" id="content" placeholder="Why do you like it? (vibe, outlets, seating)">' +
+          '<button id="submit">submit</button>' +
+        '</div>';
+
+      popup = new maplibregl.Popup({ closeOnClick: false })
+        .setLngLat(e.lngLat)
+        .setHTML(popupContent)
+        .addTo(map);
+
+      document.getElementById("submit").addEventListener("click", submitNewRecord);
+      e.preventDefault();
+    });
+
+    async function submitNewRecord() {
+      let contributor = document.getElementById("name").value;
+      let shop_name = document.getElementById("shop_name").value;
+      let favorite_order = document.getElementById("favorite_order").value;
+      let content = document.getElementById("content").value;
+      let lngLat = popup.getLngLat();
+
+      let newRecord = new URLSearchParams();
+      newRecord.append("contributor", contributor);
+      newRecord.append("shop_name", shop_name);
+      newRecord.append("favorite_order", favorite_order);
+      newRecord.append("content", content);
+      newRecord.append("lng", lngLat.lng);
+      newRecord.append("lat", lngLat.lat);
+
+      let settings = { method: "POST", body: newRecord };
+
+      try {
+        await fetch("https://my-app-irving-696f4f728ef2.herokuapp.com/api/add-record", settings);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        popup.remove();
+
+        geojson.features.push({
+          type: "Feature",
+          properties: {
+            contributor: contributor,
+            shop_name: shop_name,
+            favorite_order: favorite_order,
+            content: content
+          },
+          geometry: {
+            type: "Point",
+            coordinates: [lngLat.lng, lngLat.lat]
+          }
+        });
+
+        map.getSource("places").setData(geojson);
+      }
+    }
+  </script>
 </body>
-
 </html>
