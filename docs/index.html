@@ -175,7 +175,14 @@
             }
 
             // Create the HTML content for the contribution popup
-            const popupContent = '<div id="popup"><input type="text" id="name" placeholder="Input your name here..."><input type="text" id="content" placeholder="Input your message here..."><button id="submit">submit</button></div>';
+            const popupContent =
+              '<div id="popup">' +
+              '<input type="text" id="name" placeholder="Your name...">' +
+              '<input type="text" id="shop_name" placeholder="Coffee shop name...">' +
+              '<input type="text" id="favorite_order" placeholder="Favorite order (ex: iced latte)...">' +
+              '<input type="text" id="content" placeholder="Why do you like it? (vibe, outlets, seating)">' +
+              '<button id="submit">submit</button>' +
+              '</div>';
 
             // Create a new popup and set its content
             popup = new maplibregl.Popup({ closeOnClick: false })
@@ -190,45 +197,46 @@
 
         // Function to handle the submission of a new record
         async function submitNewRecord() {
-            let contributor = document.getElementById('name').value;
-            let content = document.getElementById('content').value;
-            let lngLat = popup.getLngLat();
-
-            // Create a new URLSearchParams object and append the data to it
-            let newRecord = new URLSearchParams();
-            newRecord.append('contributor', contributor);
-            newRecord.append('content', content);
-            newRecord.append('lng', lngLat.lng);
-            newRecord.append('lat', lngLat.lat);
-
-            // Set the POST request settings
-            let settings = {
-                method: 'POST',
-                body: newRecord
-            }
-
-            try {
-                // Send the POST request to add the new record
-                await fetch('https://my-app-irving-696f4f728ef2.herokuapp.com/api/add-record', settings);
-            } catch (err) {
-                // Handle any errors that occur during the request
-                console.error(err);
-            } finally {
-                // Remove the popup and update the GeoJSON data with the new point
-                popup.remove();
-                geojson.features.push({
-                    'type': 'Feature',
-                    'properties': {
-                        'contributor': contributor,
-                        'content': content,
-                    },
-                    'geometry': {
-                        'type': 'Point',
-                        'coordinates': [lngLat.lng, lngLat.lat]
-                    }
-                });
-                map.getSource('places').setData(geojson);
-            }
+          let contributor = document.getElementById('name').value;
+          let shop_name = document.getElementById('shop_name').value;
+          let favorite_order = document.getElementById('favorite_order').value;
+          let content = document.getElementById('content').value;
+          let lngLat = popup.getLngLat();
+        
+          let newRecord = new URLSearchParams();
+          newRecord.append('contributor', contributor);
+          newRecord.append('shop_name', shop_name);
+          newRecord.append('favorite_order', favorite_order);
+          newRecord.append('content', content);
+          newRecord.append('lng', lngLat.lng);
+          newRecord.append('lat', lngLat.lat);
+        
+          let settings = {
+            method: 'POST',
+            body: newRecord
+          };
+        
+          try {
+            await fetch('https://my-app-irving-696f4f728ef2.herokuapp.com/api/add-record', settings);
+          } catch (err) {
+            console.error(err);
+          } finally {
+            popup.remove();
+            geojson.features.push({
+              'type': 'Feature',
+              'properties': {
+                'contributor': contributor,
+                'shop_name': shop_name,
+                'favorite_order': favorite_order,
+                'content': content
+              },
+              'geometry': {
+                'type': 'Point',
+                'coordinates': [lngLat.lng, lngLat.lat]
+              }
+            });
+            map.getSource('places').setData(geojson);
+          }
         }
     </script>
 
